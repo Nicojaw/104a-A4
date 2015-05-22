@@ -1,6 +1,6 @@
 //Nico Williams and Brandon Rullamas
 //nijowill and brullama
-//Assignment 3 - LALR(1) Parser using bison
+//Assignment 4 - Symbols and Type Checking
 
 #ifndef __AUXLIB_H__
 #define __AUXLIB_H__

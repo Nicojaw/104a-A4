@@ -1,7 +1,7 @@
 %{
 //Nico Williams and Brandon Rullamas
 //nijowill and brullama
-//Assignment 3 - LALR(1) Parser using bison
+//Assignment 4 - Symbols and Type Checking
 
 #include "lyutils.h"
 #include <assert.h>
