@@ -12,11 +12,11 @@ must be reviewed by the partner.  The object is to work
 together, learning from each other, not to divide the work into
 two pieces with each partner working on a different piece.
 
-Nico Williams spent			3 hours working alone.
-Brandon Rullamas spent		2 hours working alone.
-We spent					10 hours working together.
-Nico Williams spent			5 hours driving.
-Brandon Rullamas spent 		5 hours driving.
+Nico Williams spent			5 hours working alone.
+Brandon Rullamas spent		5 hours working alone.
+We spent					20 hours working together.
+Nico Williams spent			10 hours driving.
+Brandon Rullamas spent 		10 hours driving.
 
 Please grade the work submitted by nijowill@ucsc.edu
 and not the work submitted by brullama@ucsc.edu.

@@ -2,19 +2,21 @@
 //nijowill and brullama
 //Assignment 4 - Symbols and Type Checking
 
-#include <iomanip>
+#include <string>
 #include <unordered_set>
 using namespace std;
 
 #include "stringset.h"
-#include "lyutils.h"
+#include "auxlib.h"
 
-using stringset = unordered_set<string>;
+typedef unordered_set<string> stringset;
+typedef stringset::const_iterator stringset_citor;
+typedef stringset::const_local_iterator stringset_bucket_citor;
 
 stringset set;
 
 const string* intern_stringset (const char* string) {
-   pair<stringset::const_iterator,bool> handle = set.insert (string);
+   pair<stringset_citor,bool> handle = set.insert (string);
    return &*handle.first;
 }
 
@@ -24,14 +26,13 @@ void dump_stringset (FILE* out) {
       bool need_index = true;
       size_t curr_size = set.bucket_size (bucket);
       if (max_bucket_size < curr_size) max_bucket_size = curr_size;
-      for (stringset::const_local_iterator itor = set.cbegin (bucket);
+      for (stringset_bucket_citor itor = set.cbegin (bucket);
            itor != set.cend (bucket); ++itor) {
          if (need_index) fprintf (out, "stringset[%4lu]: ", bucket);
                     else fprintf (out, "          %4s   ", "");
          need_index = false;
          const string* str = &*itor;
-         fprintf (out, "%22lu %p->\"%s\"\n",
-                  set.hash_function()(*str),
+         fprintf (out, "%22lu %p->\"%s\"\n", set.hash_function()(*str),
                   str, str->c_str());
       }
    }
