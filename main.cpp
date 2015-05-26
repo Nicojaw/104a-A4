@@ -27,6 +27,7 @@ void chomp(char *string, char delim){
    if(*nlpos == delim) *nlpos = '\0';
 }
 
+//Scans the lines of CPP
 void cpplines(FILE *pipe, char *filename){
    int linenr = 1;
    char inputname[LINESIZE];
@@ -53,6 +54,9 @@ void cpplines(FILE *pipe, char *filename){
 
 
 
+//Uses getopt() to scan options from the command line and
+//set the necessary flags. The function prints an error
+// message if an option is incorrect.
 
 int main(int argc, char **argv){
 
@@ -139,10 +143,6 @@ int main(int argc, char **argv){
       if(yyin == NULL){
          syserrprintf(command.c_str());
       }else{
-//         for(;;){
-//            int yylex_rt = yylex();
-//            if(yylex_rt == YYEOF)   break;
-//         }
          yyparse();
          int pclose_rc = pclose(yyin);
          eprint_status(command.c_str(), pclose_rc);
