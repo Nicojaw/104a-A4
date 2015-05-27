@@ -121,17 +121,6 @@ string SymbolTable::parentFunction(SymbolTable* innerScope) {
 }
 
 
-/* SymbolTable* SymbolTable::leave(SymbolTable* innerScope){
-    if(innerScope->parent != NULL){
-    innerScope= innerScope->parent;
-    return innerScope;
-    }
-    else{
-        return innerScope;
-    }
-    
-} */
-
 int SymbolTable::N(0);
 
 vector<string> SymbolTable::parseSignature(string sig) {
