@@ -179,16 +179,16 @@ gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt
         syserrprintf (command.c_str());
       }else{
         yyparse(); 
-        // int pclose_rc = pclose(yyin);
-        //eprint_status(command.c_str(), pclose_rc);          
+        int pclose_rc = pclose(yyin);
+        eprint_status(command.c_str(), pclose_rc);          
       } 
       pclose(tokoutputfile);
       astFile = fopen(asg3.c_str(), "w");
       dump_astree2(astFile, yyparse_astree);
       pclose(astFile);
         
-      int pclose_rc = pclose (yyin);
-      eprint_status (command.c_str(), pclose_rc);
+//      int pclose_rc = pclose (yyin);
+//     eprint_status (command.c_str(), pclose_rc);
       }
    return get_exitstatus();
 }
