@@ -164,10 +164,24 @@ gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt
         syserrprintf (command.c_str());
       }else{
           cpplines(yyin, filename);
-          yyparse();       
+          int pclose_rc = pclose (yyin);
+          if(pclose_rc != 0) set_exitstatus(1);
+          eprint_status (command.c_str(), pclose_rc);   
+        
       }
       dump_stringset(strFile);
       pclose(strFile);
+      
+
+      
+      yyin = popen (command.c_str(), "r");
+      if (yyin == NULL) {
+        syserrprintf (command.c_str());
+      }else{
+        yyparse(); 
+        // int pclose_rc = pclose(yyin);
+        //eprint_status(command.c_str(), pclose_rc);          
+      } 
       pclose(tokoutputfile);
       astFile = fopen(asg3.c_str(), "w");
       dump_astree2(astFile, yyparse_astree);
