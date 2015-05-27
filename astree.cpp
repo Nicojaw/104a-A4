@@ -103,7 +103,7 @@ void dump_astree2(FILE* outfile, astree* root) {
 }
 
 
-/*
+
 void scan(astree* root, SymbolTable* sym){
    if(root == NULL) return;
    for(size_t child = 0; child < root->children.size(); ++child){
@@ -112,12 +112,11 @@ void scan(astree* root, SymbolTable* sym){
          scan(root->children[child], sym);
       else if(strcmp(CurSym, "vardecl") == 0){                         
          if(root->children[child]->children[0]->children.size() < 2){
-            sym->addSymbol(root->children[child]->children[1]->lexinfo->c_str(), root->children[child]->children[0]->children[0]->children[0]->lexinfo->c_str(), root->children[child]->children[1]->filenr, root->children[child]->children[1]->linenr,
+            sym->addSymbol(root->children[child]->children[1]->lexinfo->c_str(), root->children[child]->children[0]->children[0]->children[0]->lexinfo->c_str(), root->children[child]->children[1]->filenr, root->children[child]->children[1]->linenr, root->children[child]->children[1]->offset); 
             }else{
             string type = root->children[child]->children[0]->children[0]->children[0]->lexinfo->c_str();
             type = type + "[]";
-            sym->addSymbol(root->children[child]->children[1]->lexinfo->c_str(),
-                              type, root->children[child]->children[1]->filenr, root->children[child]->children[1]->linenr, root->children[child]->children[1]->offset);
+            sym->addSymbol(root->children[child]->children[1]->lexinfo->c_str(), type, root->children[child]->children[1]->filenr, root->children[child]->children[1]->linenr, root->children[child]->children[1]->offset);
          }
       }else if (strcmp(CurSym, "struct_") == 0){
          string tabs;
@@ -133,88 +132,75 @@ void scan(astree* root, SymbolTable* sym){
          for(size_t childOther = 0; childOther < root->children[child]->children.size(); ++childOther){
             string CurChild = get_yytname(root->children[child]->children[childOther]->symbol);
             if(CurChild == "decl"){
-               CurTabs->addSymbol(  root->children[child]->children[childOther]->children[1]->lexinfo->c_str(),
-                                    root->children[child]->children[childOther]->children[0]->children[0]->children[0]->lexinfo->c_str(),
-                                    root->children[child]->children[childOther]->children[1]->filenr,
-                                    root->children[child]->children[childOther]->children[1]->linenr,
-                                    root->children[child]->children[childOther]->children[1]->offset);
+               CurTabs->addSymbol(  root->children[child]->children[childOther]->children[1]->lexinfo->c_str(), root->children[child]->children[childOther]->children[0]->children[0]->children[0]->lexinfo->c_str(), root->children[child]->children[childOther]->children[1]->filenr, root->children[child]->children[childOther]->children[1]->linenr, root->children[child]->children[childOther]->children[1]->offset);
             }
          }
-  
 
-      }else if(strcmp(CurSym, "block") == 0){       //if there is a block, then create a new block and start scanning that one
+      }else if(strcmp(CurSym, "block") == 0){       
          scan(root->children[child], root->children[child]->blockpt = sym->enterBlock()); 
-      }else if(strcmp(CurSym, "function") == 0){       //found function
+      }else if(strcmp(CurSym, "function") == 0){       
          char ident[50];
-         char typedecl[100];
+         char decl[100];
          int blocknum;
          int numdecl = 0;
-         int funcfilenr = 0;
-         int funclinenr = 0;
-         int funcoffset = 0;
-         for(size_t childOther = 0; childOther < root->children[child]->children.size(); ++childOther){         //for all child nodes of function
-            const char* currinnersymbol = get_yytname(root->children[child]->children[childOther]->symbol);
-            if(strcmp(currinnersymbol, "TOK_IDENT") == 0){   //find function identifier
-               funcfilenr = root->children[child]->children[childOther]->filenr;
-               funclinenr = root->children[child]->children[childOther]->linenr;
-               funcoffset = root->children[child]->children[childOther]->offset;
+         int funfilenr = 0;
+         int funlinenr = 0;
+         int funoffset = 0;
+         for(size_t childOther = 0; childOther < root->children[child]->children.size(); ++childOther){ 
+            const char* CurSymIn = get_yytname(root->children[child]->children[childOther]->symbol);
+            if(strcmp(CurSymIn, "TOK_IDENT") == 0){ 
+               funfilenr = root->children[child]->children[childOther]->filenr;
+               funlinenr = root->children[child]->children[childOther]->linenr;
+               funoffset = root->children[child]->children[childOther]->offset;
                strcpy(ident, root->children[child]->children[childOther]->lexinfo->c_str());
             }
-            if(strcmp(currinnersymbol, "type") == 0){    //add type to the type/decl string
+            if(strcmp(CurSymIn, "type") == 0){ 
                if(root->children[child]->children[childOther]->children.size() == 2){
-               strcpy(typedecl, root->children[child]->children[childOther]->children[0]->children[0]->lexinfo->c_str());
-               strcat(typedecl, "[]");
-               strcat(typedecl, "(");
+               strcpy(decl, root->children[child]->children[childOther]->children[0]->children[0]->lexinfo->c_str());
+               strcat(decl, "[]");
+               strcat(decl, "(");
                }else{
-               strcpy(typedecl, root->children[child]->children[childOther]->children[0]->children[0]->lexinfo->c_str());
-               strcat(typedecl, "(");
+               strcpy(decl, root->children[child]->children[childOther]->children[0]->children[0]->lexinfo->c_str());
+               strcat(decl, "(");
                }
             }
-            if(strcmp(currinnersymbol, "block") == 0)
+            if(strcmp(CurSymIn, "block") == 0)
                blocknum = childOther;
          }
-         for(size_t childOther = 0; childOther < root->children[child]->children.size(); ++childOther){            //get function decl types
+         for(size_t childOther = 0; childOther < root->children[child]->children.size(); ++childOther){            
             if(strcmp(get_yytname(root->children[child]->children[childOther]->symbol), "decl") == 0){
                if(numdecl != 0)
-                  strcat(typedecl, ",");
+                  strcat(decl, ",");
                if(root->children[child]->children[childOther]->children[0]->children.size() == 2){
-                  strcat(typedecl,root->children[child]->children[childOther]->children[0]->children[0]->children[0]->lexinfo->c_str());
-                  strcat(typedecl,"[]");
+                  strcat(decl,root->children[child]->children[childOther]->children[0]->children[0]->children[0]->lexinfo->c_str());
+                  strcat(decl,"[]");
                }else{
-               strcat(typedecl,root->children[child]->children[childOther]->children[0]->children[0]->children[0]->lexinfo->c_str());
+               strcat(decl,root->children[child]->children[childOther]->children[0]->children[0]->children[0]->lexinfo->c_str());
                }
                ++numdecl;
             }
          }
-         strcat(typedecl, ")");
-         SymbolTable* funcsym = sym->enterFunction(ident, typedecl, funcfilenr, funclinenr, funcoffset);
-         for(size_t childOther = 0; childOther < root->children[child]->children.size(); ++childOther){           //add func declarations
+         strcat(decl, ")");
+         SymbolTable* FunSym = sym->enterFunction(ident, decl, funfilenr, funlinenr, funoffset);
+         for(size_t childOther = 0; childOther < root->children[child]->children.size(); ++childOther){
             if(strcmp(get_yytname(root->children[child]->children[childOther]->symbol), "decl") == 0){
                if(root->children[child]->children[childOther]->children[0]->children.size() == 2){
-                  string typearray = root->children[child]->children[childOther]->children[0]->children[0]->children[0]->lexinfo->c_str();
-                  typearray = typearray + "[]";
-                  funcsym->addSymbol(root->children[child]->children[childOther]->children[1]->lexinfo->c_str(),
-                                     typearray,
-                                     root->children[child]->children[childOther]->children[1]->filenr,
-                                     root->children[child]->children[childOther]->children[1]->linenr,
-                                     root->children[child]->children[childOther]->children[1]->offset);
+                  string types = root->children[child]->children[childOther]->children[0]->children[0]->children[0]->lexinfo->c_str();
+                  types = types + "[]";
+                  FunSym->addSymbol(root->children[child]->children[childOther]->children[1]->lexinfo->c_str(), types, root->children[child]->children[childOther]->children[1]->filenr, root->children[child]->children[childOther]->children[1]->linenr,root->children[child]->children[childOther]->children[1]->offset);
                 }
                else{
-               funcsym->addSymbol(root->children[child]->children[childOther]->children[1]->lexinfo->c_str(),
-                                  root->children[child]->children[childOther]->children[0]->children[0]->children[0]->lexinfo->c_str(),
-                                  root->children[child]->children[childOther]->children[1]->filenr,
-                                  root->children[child]->children[childOther]->children[1]->linenr,
-                                  root->children[child]->children[childOther]->children[1]->offset);
+               FunSym->addSymbol(root->children[child]->children[childOther]->children[1]->lexinfo->c_str(), root->children[child]->children[childOther]->children[0]->children[0]->children[0]->lexinfo->c_str(), root->children[child]->children[childOther]->children[1]->filenr, root->children[child]->children[childOther]->children[1]->linenr, root->children[child]->children[childOther]->children[1]->offset);
                }
             }
          }
-         scan(root->children[child]->children[blocknum], root->children[child]->children[blocknum]->blockpt = funcsym);
+         scan(root->children[child]->children[blocknum], root->children[child]->children[blocknum]->blockpt = FunSym);
     }
    }
 
 }
 
-*/
+
 
 
 
