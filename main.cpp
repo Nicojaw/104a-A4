@@ -73,6 +73,8 @@ int main (int argc, char** argv) {
 	int Dopts = 0;
 	int Dargs = 0;
     yy_flex_debug = 0;
+    extern FILE* tokoutputfile;
+    extern astree* yyparse_astree;
 /*Get options. code based off
 gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt
 */
@@ -130,17 +132,26 @@ gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt
     string base;
     string asg1;
     string asg2;
+    string asg3;
     FILE * strFile;
-    FILE * tokFile;
+    FILE * astFile;
     set_execname (argv[0]);
     
    for (int argi = optind; argi < argc; ++argi) {
       char* filename = argv[argi]; 
+      char* ext = strrchr(filename,'.oc');
+      //printf("%c\n", ext);
+      if(ext == NULL){
+        fprintf(stderr, "Bad file type\n");
+        exit_status=1;
+        exit(exit_status);
+      }
       base = remove_extension(filename); 
       asg1 = base+".str";
       asg2 = base+".tok";
+      asg3 = base+".ast";
       strFile = fopen(asg1.c_str(), "w");
-      tokFile = fopen(asg2.c_str(), "w");
+      tokoutputfile = fopen(asg2.c_str(), "w");
       
 	  string command;
 	  if (Dopts) {
@@ -148,27 +159,22 @@ gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt
 	  } else {
 		command = CPP + " " + filename;
 	  }  
-//      printf ("command=\"%s\"\n", command.c_str());
       yyin = popen (command.c_str(), "r");
       if (yyin == NULL) {
         syserrprintf (command.c_str());
       }else{
- //       for(;;){
- //         int token = yylex();
- //         if (token == YYEOF){
- //           return;
- //         }
+          cpplines(yyin, filename);
           yyparse();       
-        }
-        pclose(tokFile);
+      }
+      dump_stringset(strFile);
+      pclose(strFile);
+      pclose(tokoutputfile);
+      astFile = fopen(asg3.c_str(), "w");
+      dump_astree2(astFile, yyparse_astree);
+      pclose(astFile);
         
-
-      //cpplines (pipe, filename);
       int pclose_rc = pclose (yyin);
       eprint_status (command.c_str(), pclose_rc);
       }
-   
-   dump_stringset(strFile);
-   pclose(strFile);
    return get_exitstatus();
 }
