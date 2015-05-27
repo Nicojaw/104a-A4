@@ -200,6 +200,233 @@ void scan(astree* root, SymbolTable* sym){
 
 }
 
+string checker(astree* root, SymbolTable* symtab){
+   if(root == NULL) return NULL;
+   string symbolname = get_yytname(root->symbol);
+
+   if(symbolname == "TOK_INT" || symbolname == "TOK_INTCON") return "int";
+   if(symbolname == "TOK_CHAR" || symbolname == "TOK_CHARCON") return "char";
+   if(symbolname == "TOK_STRING" || symbolname == "TOK_STRINGCON") return "string";
+   if(symbolname == "TOK_BOOL" || symbolname == "TOK_TRUE" || symbolname == "TOK_FALSE") return "bool";
+   if(symbolname == "TOK_NULL") return "null";
+
+   if(symbolname == "TOK_IDENT") return symtab->lookup(root->lexinfo->c_str());
+   if(symbolname == "constant") return checker(root->children[0], symtab);
+   if(symbolname == "type"){
+      if(root->children.size() == 2){
+         string type = checker(root->children[0],symtab);
+         type = type + "[]";
+         return type;
+      }
+    return checker(root->children[0], symtab);
+   }
+   if(symbolname == "basetype"){
+      string child0 = get_yytname(root->children[0]->symbol);
+      string ident = root->children[0]->lexinfo->c_str();
+      if(child0 == "TOK_IDENT"){
+         if (strSym->lookup2(ident) != NULL) return ident;
+      }
+      return checker(root->children[0], symtab);
+
+   }
+   if(symbolname == "variable") {
+      if(root->children.size() == 1) return checker(root->children[0], symtab);
+      if(root->children.size() == 2){
+         string child1 = get_yytname(root->children[1]->symbol);
+         SymbolTable* curstruct;
+         if(child1 == "TOK_IDENT"){
+            string child0 = checker(root->children[0],symtab);//        root->children[0]->children[0]->lexinfo->c_str();
+            string ident = root->children[1]->lexinfo->c_str();
+            if(strSym->lookup2(child0) != NULL){
+               curstruct = strSym->lookup2(child0);
+               if (curstruct == NULL){ 
+                  errprintf("Not a variable of this struct!\n");
+                  return "";
+               }
+//               printf("%s\n", curstruct->lookup(ident).c_str());
+               return curstruct->lookup(ident);
+            }
+         }else{
+            if(checker(root->children[1],symtab) == "int" && checker(root->children[0],symtab) == "string") return "char"; 
+            if(checker(root->children[1],symtab) == "int" && checker(root->children[0],symtab) == "int[]") return "int";
+            if(checker(root->children[1],symtab) == "int" && checker(root->children[0],symtab) == "bool[]") return "bool";
+            if(checker(root->children[1],symtab) == "int" && checker(root->children[0],symtab) == "char[]") return "char";
+            if(checker(root->children[1],symtab) == "int" && checker(root->children[0],symtab) == "struct[]") return "struct";
+            if(checker(root->children[1],symtab) == "int" && checker(root->children[0],symtab) == "string[]") return "string";
+         }
+      }
+
+   }
+
+   if(symbolname == "program"){
+      for(size_t child = 0; child < root->children.size(); ++ child){
+         checker(root->children[child], symtab);
+      }
+   }
+
+   if(symbolname == "block"){
+      SymbolTable* currtable = root->blockpt;
+      for(size_t child = 0; child < root->children.size(); ++child){
+         checker(root->children[child], currtable);
+      }
+   }
+
+   if(symbolname == "vardecl"){
+      string c0 = checker(root->children[0],symtab);
+//      if(root->children[0]->children.size() == 2) c0 = c0 + "[]";  ///////////////
+      string c2 = checker(root->children[2],symtab);
+      if(c0 != c2) errprintf("Declaring incorrect type!\n");
+      return "";
+   }
+
+   if(symbolname == "while_" || symbolname == "if_"){
+      if(checker(root->children[0],symtab) != "bool") errprintf("Expression does not return a bool!\n");
+      checker(root->children[1], symtab);
+      if(root->children[2] != NULL) checker(root->children[2], symtab);
+      return "";
+   }
+
+   if(symbolname == "function"){
+      SymbolTable* currblock;
+      astree* blockroot;
+      string funcreturn;
+      for(size_t child = 0; child < root->children.size(); ++child){
+         string currchild = get_yytname(root->children[child]->symbol);
+         if(currchild == "type"){
+            funcreturn = checker(root->children[child], symtab);
+         }
+         if(currchild == "block"){
+            currblock = root->children[child]->blockpt;
+            blockroot = root->children[child];
+         }
+      }
+
+//      string funcreturn = checker(root->children[1], symtab);
+//      printf("rawrrr%s\n", funcreturn.c_str());
+      if(!searcher(blockroot, funcreturn, currblock)) errprintf("Incorrect return type!\n");
+   }
+
+   if(symbolname == "allocator_"){
+      if(root->children.size() < 3) return checker(root->children[1],symtab);
+      else{
+         string bracket = get_yytname(root->children[3]->symbol);
+         string result = checker(root->children[1],symtab);
+         if(bracket == "'['"){
+            if(checker(root->children[2],symtab) == "int"){
+               result = result + "[]";
+//               printf("%s\n", result.c_str());
+               return result;
+            }else errprintf("Need int in brackets!\n");
+         }else return result;
+      }
+   }
+
+   if(symbolname == "call"){
+      string funcoper = "(";
+      string funcname;
+      string funcops;
+      size_t check = -1;
+      int begin;
+      int comcounter = 0;
+      int firstparen;
+      for(size_t child = 0; child < root->children.size(); ++child){
+         string currchild = get_yytname(root->children[child]->symbol);
+         if(currchild != "TOK_IDENT"){
+            if (comcounter != 0) funcoper = funcoper + ",";
+            string currop = checker(root->children[child], symtab);
+            funcoper = funcoper + currop;
+            comcounter++;
+         }
+         if(currchild == "TOK_IDENT") funcname = root->children[child]->lexinfo->c_str();
+      }
+      funcoper = funcoper + ")";
+//      printf("%s\n", funcoper.c_str());
+      funcops = symtab->lookup(funcname);
+//      printf("%s\n", funcops.c_str());
+      begin = funcops.length() - funcoper.length();
+      if(funcops.find(funcoper) == check)
+         errprintf("Incorrect arguments passed to function!\n");
+      firstparen = funcops.find_first_of('(', 0);
+//      printf("%s\n", funcops.substr(0,firstparen).c_str());
+      return funcops.substr(0,firstparen);
+   }
+
+
+   if(symbolname == "binop"){
+      string child1 = get_yytname(root->children[1]->symbol);
+      if(child1 == "'+'" || child1 == "'-'" || child1 == "'*'" || child1 == "'/'" || child1 == "'%'"){
+         if(checker(root->children[0],symtab) == "int" && checker(root->children[0], symtab) == checker(root->children[2],symtab))
+            return "int";
+         else errprintf("One or more inputs is not of type int\n");
+      }
+      if(child1 == "TOK_LT" || child1 == "TOK_LE" || child1 == "TOK_GT" || child1 == "TOK_GE"){
+         string c0 = checker(root->children[0], symtab);
+         string c2 = checker(root->children[2], symtab);
+         if((c0 == "int" || c0 == "char" || c0 == "bool") && c0 == c2 )
+            return "bool";
+         else
+            errprintf("Comparison of different or incorrect types!\n");
+      }
+      if(child1 == "TOK_NE" || child1 == "TOK_EQ"){
+         string c0 = checker(root->children[0], symtab);
+         string c2 = checker(root->children[2], symtab);
+         if(c0 == c2 || (c0 != "bool" && c0 != "int" && c0 != "char" && c2 == "null"))
+            return "bool";
+         else
+            errprintf("Comparison of different types!\n");
+      }
+      if(child1 == "'='"){
+         string c0 = checker(root->children[0], symtab);
+         string c2 = checker(root->children[2], symtab);
+         if(c0 == c2 || (c0 != "bool" && c0 != "int" && c0 != "char" && c2 == "null"))
+            return c0;
+         else
+            errprintf("Trying to set variable to different type!\n");
+      }
+   }
+
+   if(symbolname == "unop"){
+      string child0 = get_yytname(root->children[0]->symbol);
+      if(child0 == "TOK_POS" || child0 == "TOK_NEG"){
+         if(checker(root->children[0]->children[0], symtab) == "int") return "int";
+         else errprintf("Tried adding sign to non-int type!\n");
+      }
+      if(child0 == "'!'"){
+         if(checker(root->children[0]->children[0], symtab) == "bool") return "bool";
+         else errprintf("Tried negating a non-bool!\n");
+      }
+      if(child0 == "TOK_ORD"){
+         if(checker(root->children[0]->children[0], symtab) == "char") return "int";
+         else errprintf("Tried using ord on non-char type!\n");
+      }
+      if(child0 == "TOK_CHR"){
+         if(checker(root->children[0]->children[0], symtab) == "int") return "char";
+         else errprintf("Tried using chr on non-int type!\n");
+      }
+   }
+   return ""; 
+
+}
+
+bool searcher(astree* root, string type, SymbolTable* symtab){
+   if(root == NULL) return true;
+   SymbolTable* currtab = symtab;
+   for(size_t child = 0; child < root->children.size(); ++child){
+      string currsym = get_yytname(root->children[child]->symbol);
+      if(currsym == "return_"){
+         if(root->children[child]->children.size() != 0 && type == "void") return false;
+         if(root->children[child]->children.size() == 1){
+            string roottype = checker(root->children[child]->children[0], symtab);
+            if(roottype != type) return false; 
+         }
+      }
+      if(currsym == "block"){
+         currtab = root->children[child]->blockpt;
+      }
+      if(!searcher(root->children[child], type, currtab)) return false;
+   }
+   return true;
+}
 
 void yyprint (FILE* outfile, unsigned short toknum,
               astree* yyvaluep) {
