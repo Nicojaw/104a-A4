@@ -201,34 +201,6 @@ void scan(astree* root, SymbolTable* sym){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 void yyprint (FILE* outfile, unsigned short toknum,
               astree* yyvaluep) {
    if (is_defined_token (toknum)) {
