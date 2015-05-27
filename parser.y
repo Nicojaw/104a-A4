@@ -1,11 +1,9 @@
 %{
-//Nico Williams and Brandon Rullamas
-//nijowill and brullama
-//Assignment 4 - Symbols and Type Checking
+// Dummy parser for scanner project.
 
 #include "lyutils.h"
-#include <assert.h>
 #include "astree.h"
+#include "assert.h"
 
 %}
 
@@ -25,7 +23,7 @@
 %token TOK_POS TOK_NEG TOK_NEWARRAY TOK_TYPEID TOK_FIELD
 %token TOK_ORD TOK_CHR TOK_ROOT
 
-%token vardecl type basetype constant  decl struct_ function block while_ return_ call unop binop allocator_ variable if_ else_
+%token vardecl type basetype constant program decl struct_ function block while_ return_ call unop binop allocator_ variable if_ else_
 
 %right TOK_IF TOK_ELSE
 %right '='
@@ -36,11 +34,11 @@
 %left '[' '.' 
 %nonassoc TOK_NEW
 
-%start program
+%start program1
 
 %%
 
-program : stmtseq              { $$ = $$ = $1; }
+program1 : stmtseq              { $$ = $$ = $1; }
          ;
 
 stmtseq : stmtseq structdef    { $$ = adopt1($1,$2); }
@@ -119,11 +117,11 @@ expr      : unop1               {$$ = $1; }
           | constant1           {$$ = $1; }
           ;
 
-unop1     : '+' expr %prec TOK_POS      { $$ = adopt1sym($1,$2,TOK_POS); }
-          | '-' expr %prec TOK_NEG      { $$ = adopt1sym($1,$2,TOK_NEG); }
-          | '!' expr %prec '!'          { $$ = adopt1sym($1,$2,'!'); }
-          | TOK_ORD expr %prec TOK_ORD  { $$ = adopt1sym($1,$2,TOK_ORD); }
-          | TOK_CHR expr %prec TOK_CHR  { $$ = adopt1sym($1,$2,TOK_CHR); }
+unop1     : '+' expr %prec TOK_POS      { $$ = adopt1(new_astree(unop,0,0,0,""),adopt1sym($1,$2,TOK_POS)); }
+          | '-' expr %prec TOK_NEG      { $$ = adopt1(new_astree(unop,0,0,0,""),adopt1sym($1,$2,TOK_NEG)); }
+          | '!' expr %prec '!'          { $$ = adopt1(new_astree(unop,0,0,0,""),adopt1sym($1,$2,'!')); }
+          | TOK_ORD expr %prec TOK_ORD  { $$ = adopt1(new_astree(unop,0,0,0,""),adopt1sym($1,$2,TOK_ORD)); }
+          | TOK_CHR expr %prec TOK_CHR  { $$ = adopt1(new_astree(unop,0,0,0,""),adopt1sym($1,$2,TOK_CHR)); }
           ;
 
 
@@ -143,9 +141,9 @@ binop1    : expr '=' expr      { $$ = adopt1(adopt2(new_astree(binop,0,0,0,""), 
           | expr '%' expr      { $$ = adopt1(adopt2(new_astree(binop,0,0,0,""), $1, $2), $3); }
           ;
 
-allocator1 : TOK_NEW basetype1 '(' expr ')'   { $$ = adopt1(adopt2(new_astree(allocator_,0,0,0,""),$1,$2),$4); }
+allocator1 : TOK_NEW basetype1 '(' expr ')'   { $$ = adopt2(adopt2(new_astree(allocator_,0,0,0,""),$1,$2),$4,$3); }
            | TOK_NEW basetype1 '(' ')'        { $$ = adopt2(new_astree(allocator_,0,0,0,""),$1,$2); }
-           | TOK_NEW basetype1 '[' expr ']'   { $$ = adopt1(adopt2(new_astree(allocator_,0,0,0,""),$1,$2),$4); }
+           | TOK_NEW basetype1 '[' expr ']'   { $$ = adopt2(adopt2(new_astree(allocator_,0,0,0,""),$1,$2),$4,$3); }
            ;
 
 call1     : TOK_IDENT '(' comexpr ')'         { $$ = adopt1($3, $1); }
@@ -188,3 +186,4 @@ static void* yycalloc (size_t size) {
    assert (result != NULL);
    return result;
 }
+

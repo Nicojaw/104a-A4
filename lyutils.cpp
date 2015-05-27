@@ -1,7 +1,3 @@
-//Nico Williams and Brandon Rullamas
-//nijowill and brullama
-//Assignment 4 - Symbols and Type Checking
-
 #include <vector>
 #include <string>
 using namespace std;
@@ -94,7 +90,7 @@ astree* new_parseroot (void) {
    return yyparse_astree;
 }
 
-
+
 void scanner_include (void) {
    scanner_newline();
    char filename[strlen (yytext) + 1];
@@ -113,3 +109,4 @@ void scanner_include (void) {
               included_filenames.back().c_str(), scan_linenr);
    }
 }
+

@@ -1,12 +1,7 @@
-//Nico Williams and Brandon Rullamas
-//nijowill and brullama
-//Assignment 4 - Symbols and Type Checking
-
 #ifndef __AUXLIB_H__
 #define __AUXLIB_H__
 
 #include <stdarg.h>
-#include "lyutils.h"
 
 //
 // DESCRIPTION
@@ -125,5 +120,5 @@ void __debugprintf (char flag, const char* file, int line,
 #define RCSH(X) RCS2(__COUNTER__,X)
 #define RCSC(X) RCSH(X \
 "\0$Compiled: " __FILE__ " " __DATE__ " " __TIME__ " $")
-RCSH("$Id: auxlib.h,v 1.1 2013-09-20 19:38:26-07 - - $") 
+ 
 #endif

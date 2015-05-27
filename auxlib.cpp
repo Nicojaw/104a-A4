@@ -1,7 +1,3 @@
-//Nico Williams and Brandon Rullamas
-//nijowill and brullama
-//Assignment 4 - Symbols and Type Checking
-
 #include <assert.h>
 #include <errno.h>
 #include <libgen.h>
@@ -133,4 +129,4 @@ void __debugprintf (char flag, const char* file, int line,
    fflush (NULL);
 }
 
-RCSC("$Id: auxlib.cpp,v 1.2 2014-10-07 18:07:29-07 - - $")
+

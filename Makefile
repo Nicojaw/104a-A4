@@ -1,9 +1,5 @@
-#Nico Williams and Brandon Rullamas
-#nijowill and brullama
-#Assignment 4 - Symbols and Type Checking
-
 MKFILE    = Makefile
-#DEPSFILE  = ${MKFILE}.deps
+DEPSFILE  = ${MKFILE}.deps
 NOINCLUDE = ci clean spotless
 NEEDINCL  = ${filter ${NOINCLUDE}, ${MAKECMDGOALS}}
 VALGRIND  = valgrind --leak-check=full --show-reachable=yes
@@ -11,18 +7,18 @@ VALGRIND  = valgrind --leak-check=full --show-reachable=yes
 #
 # Definitions of list of files:
 #
-HSOURCES  = astree.h lyutils.h  auxlib.h  stringset.h 
+HSOURCES  = astree.h  lyutils.h  auxlib.h  stringset.h 
 CSOURCES  = astree.cpp lyutils.cpp auxlib.cpp stringset.cpp main.cpp
 LSOURCES  = scanner.l
 YSOURCES  = parser.y
-ETCSRC    = README ${MKFILE}
+ETCSRC    = README ${MKFILE} ${DEPSFILE}
 CLGEN     = yylex.cpp
 HYGEN     = yyparse.h
 CYGEN     = yyparse.cpp
-CGENS     = ${CYGEN} ${CLGEN}
+CGENS     = ${CLGEN} ${CYGEN}
 ALLGENS   = ${HYGEN} ${CGENS}
 EXECBIN   = oc
-ALLCSRC   = ${CGENS} ${CSOURCES}
+ALLCSRC   = ${CSOURCES} ${CGENS}
 OBJECTS   = ${ALLCSRC:.cpp=.o}
 LREPORT   = yylex.output
 YREPORT   = yyparse.output
@@ -36,7 +32,7 @@ LISTSRC   = ${ALLSRC} ${HYGEN}
 # Definitions of the compiler and compilation options:
 #
 GCC       = g++ -g -O0 -Wall -Wextra -std=gnu++11
-#MKDEPS    = g++ -MM -std=gnu++11
+MKDEPS    = g++ -MM -std=gnu++11
 
 #
 # The first target is always ``all'', and hence the default,
@@ -49,7 +45,7 @@ all : ${EXECBIN}
 #
 ${EXECBIN} : ${OBJECTS}
 	${GCC} -o${EXECBIN} ${OBJECTS}
-
+	ident ${OBJECTS} ${EXECBIN} >${IREPORT}
 
 #
 # Build an object file form a C source file.
@@ -57,11 +53,13 @@ ${EXECBIN} : ${OBJECTS}
 %.o : %.cpp
 	${GCC} -c $<
 
+
 #
 # Build the scanner.
 #
 ${CLGEN} : ${LSOURCES}
 	flex --outfile=${CLGEN} ${LSOURCES} 2>${LREPORT}
+	- grep -v '^  ' ${LREPORT}
 
 #
 # Build the parser.
@@ -88,23 +86,24 @@ lis : ${LISTSRC} tests
 # Clean and spotless remove generated files.
 #
 clean :
-	- rm ${OBJECTS} ${ALLGENS} ${REPORTS} core
+	- rm ${OBJECTS} ${ALLGENS} ${REPORTS} ${DEPSFILE} core
 	- rm ${foreach test, ${TESTINS:.in=}, \
 		${patsubst %, ${test}.%, out err}}
 
 spotless : clean
 	- rm ${EXECBIN} List.*.ps List.*.pdf
 
+
 #
 # Build the dependencies file using the C preprocessor
 #
-#deps : ${ALLCSRC}
-#	@ echo "# ${DEPSFILE} created `date` by ${MAKE}" >${DEPSFILE}
-#	${MKDEPS} ${ALLCSRC} >>${DEPSFILE}
+deps : ${ALLCSRC}
+	@ echo "# ${DEPSFILE} created `date` by ${MAKE}" >${DEPSFILE}
+	${MKDEPS} ${ALLCSRC} >>${DEPSFILE}
 
-#${DEPSFILE} :
-#	@ touch ${DEPSFILE}
-#	${MAKE} --no-print-directory deps
+${DEPSFILE} :
+	@ touch ${DEPSFILE}
+	${MAKE} --no-print-directory deps
 
 #
 # Test
@@ -123,8 +122,9 @@ tests : ${EXECBIN}
 # Everything
 #
 again :
-	gmake --no-print-directory spotless ci all lis
+	gmake --no-print-directory spotless deps ci all lis
 	
 ifeq "${NEEDINCL}" ""
-#include ${DEPSFILE}
+include ${DEPSFILE}
 endif
+

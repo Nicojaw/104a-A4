@@ -1,7 +1,3 @@
-//Nico Williams and Brandon Rullamas
-//nijowill and brullama
-//Assignment 4 - Symbols and Type Checking
-
 #include <string>
 #include <unordered_set>
 using namespace std;
@@ -40,3 +36,4 @@ void dump_stringset (FILE* out) {
    fprintf (out, "bucket_count = %lu\n", set.bucket_count());
    fprintf (out, "max_bucket_size = %lu\n", max_bucket_size);
 }
+
