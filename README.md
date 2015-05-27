@@ -18,5 +18,5 @@ We spent					20 hours working together.
 Nico Williams spent			10 hours driving.
 Brandon Rullamas spent 		10 hours driving.
 
-Please grade the work submitted by nijowill@ucsc.edu
-and not the work submitted by brullama@ucsc.edu.
+Please grade the work submitted by brullama@ucsc.edu
+and not the work submitted by nijowill@ucsc.edu.
