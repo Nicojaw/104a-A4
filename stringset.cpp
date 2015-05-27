@@ -1,3 +1,7 @@
+//Nico Williams and Brandon Rullamas
+//nijowill and brullama
+//Assignment 4 - Symbols and Type Checking
+
 #include <string>
 #include <unordered_set>
 using namespace std;

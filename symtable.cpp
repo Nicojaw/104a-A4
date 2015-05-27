@@ -1,4 +1,6 @@
-// $Id: symbol-table-code.cpp,v 1.6 2015-05-13 14:40:56-07 - - $
+//Nico Williams and Brandon Rullamas
+//nijowill and brullama
+//Assignment 4 - Symbols and Type Checking
 
 #include <bitset>
 #include <string>
