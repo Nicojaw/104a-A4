@@ -12,9 +12,9 @@
 #include "astree.h"
 #include "stringset.h"
 #include "lyutils.h"
-/*#include "symtable.h"
+#include "symtable.h"
 
-SymbolTable* symbol = new SymbolTable(NULL);*/
+SymbolTable* strSym = new SymbolTable(NULL);
 
 astree* new_astree (int symbol, int filenr, int linenr,
                     int offset, const char* lexinfo) {
@@ -125,8 +125,8 @@ void scan(astree* root, SymbolTable* sym){
             string CurChild = get_yytname(root->children[child]->children[childOther]->symbol);
             if(CurChild == "TOK_IDENT"){
                tabs = root->children[child]->children[childOther]->lexinfo->c_str();
-               structtab->addStruct(tabs);
-               CurTabs = structtab->lookup2(tabs);
+               strSym->addStruct(tabs);
+               CurTabs = strSym->lookup2(tabs);
             }
          }
          for(size_t childOther = 0; childOther < root->children[child]->children.size(); ++childOther){

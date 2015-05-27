@@ -1,7 +1,3 @@
-//Nico Williams and Brandon Rullamas
-//nijowill and brullama
-//Assignment 4 - Symbols and Type Checking
-
 #include <fstream>
 #include <unistd.h>
 #include <iostream>
@@ -137,8 +133,10 @@ gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt
     string asg1;
     string asg2;
     string asg3;
+    string asg4;
     FILE * strFile;
     FILE * astFile;
+    FILE * symFile;
     set_execname (argv[0]);
     
    for (int argi = optind; argi < argc; ++argi) {
@@ -154,6 +152,7 @@ gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt
       asg1 = base+".str";
       asg2 = base+".tok";
       asg3 = base+".ast";
+      asg4 = base+".sym";
       strFile = fopen(asg1.c_str(), "w");
       tokoutputfile = fopen(asg2.c_str(), "w");
       
@@ -191,8 +190,14 @@ gnu.org/software/libc/manual/html_node/Example-of-Getopt.html#Example-of-Getopt
       dump_astree2(astFile, yyparse_astree);
       pclose(astFile);
         
-//      int pclose_rc = pclose (yyin);
-//     eprint_status (command.c_str(), pclose_rc);
+      symFile = fopen(asg4.c_str(), "w");
+      SymbolTable* Symbols = new SymbolTable(NULL);
+      scan(yyparse_astree, Symbols);
+      Symbols->dump(symFile, 0);
+      pclose(symFile);
+      
+        
+        
       }
    return get_exitstatus();
 }

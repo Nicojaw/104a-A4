@@ -2,6 +2,9 @@
 //nijowill and brullama
 //Assignment 4 - Symbols and Type Checking
 
+#include "auxlib.h"
+#include "symtable.h"
+
 #include <bitset>
 #include <string>
 #include <unordered_map>
@@ -43,7 +46,7 @@ SymbolTable* SymbolTable::enterBlock() {
 
 SymbolTable* SymbolTable::enterFunction(string name, string signature,int filenr, int linenr, int offset) {
     this->addSymbol(name, signature,filenr,linenr,offset);
-    SymbolTable* child = new SymbolTable(this);.
+    SymbolTable* child = new SymbolTable(this);
     this->subscopes[name] = child;
     return child;
 }
@@ -55,9 +58,10 @@ void SymbolTable::addSymbol(string name, string type, int filenr,int linenr, int
     this->mapoffset[name] = offset;
 }
 
-void SymbolTable::addSymbol1(string name, string type) {
-    this->mapping[name] = type;
+void SymbolTable::addStruct(string name){
+   this->structs[name] = new SymbolTable(NULL);
 }
+
 
 void SymbolTable::dump(FILE* symfile, int depth) {
     std::map<string,string>::iterator it;
@@ -90,6 +94,18 @@ string SymbolTable::lookup(string name) {
     }
 }
 
+SymbolTable* SymbolTable::lookup2(string name){
+   if (this->structs.count(name) > 0){
+      return this->structs[name];
+   }
+   if (this->parent != NULL){
+      return this->parent->lookup2(name);
+   }else{
+    errprintf("Unknown struct\n");
+    return NULL;
+   }
+}
+
 string SymbolTable::parentFunction(SymbolTable* innerScope) {
     std::map<string,SymbolTable*>::iterator it;
     for (it = this->subscopes.begin(); it != this->subscopes.end(); ++it) {
@@ -105,7 +121,7 @@ string SymbolTable::parentFunction(SymbolTable* innerScope) {
 }
 
 
-SymbolTable* SymbolTable::leave(SymbolTable* innerScope){
+/* SymbolTable* SymbolTable::leave(SymbolTable* innerScope){
     if(innerScope->parent != NULL){
     innerScope= innerScope->parent;
     return innerScope;
@@ -114,7 +130,7 @@ SymbolTable* SymbolTable::leave(SymbolTable* innerScope){
         return innerScope;
     }
     
-}
+} */
 
 int SymbolTable::N(0);
 

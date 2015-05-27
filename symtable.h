@@ -16,9 +16,9 @@ class SymbolTable {
   int number;
   SymbolTable* parent;
   map<string,string> mapping;
-  map<string,int> filenrs;
-  map<string,int> linenrs;
-  map<string,int> offsets;
+  map<string,int> mapfile;
+  map<string,int> mapline;
+  map<string,int> mapoffset;
   map<string,SymbolTable*> structs;
   map<string,SymbolTable*> subscopes;
 
