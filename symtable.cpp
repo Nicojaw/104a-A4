@@ -27,3 +27,107 @@ struct symbol {
    size_t blocknr;
    vector<symbol*>* parameters;
 };
+
+SymbolTable::SymbolTable(SymbolTable* parent) {
+	this->parent = parent;
+	this->number = SymbolTable::N++;
+}
+
+SymbolTable* SymbolTable::enterBlock() {
+	SymbolTable* child = new SymbolTable(this);
+	char buffer[10];
+	sprintf(&buffer[0], "%d", child->number);
+	this->subscopes[buffer] = child;
+	return child;
+}
+
+SymbolTable* SymbolTable::enterFunction(string name, string signature,int filenr, int linenr, int offset) {
+    this->addSymbol(name, signature,filenr,linenr,offset);
+    SymbolTable* child = new SymbolTable(this);.
+    this->subscopes[name] = child;
+    return child;
+}
+
+void SymbolTable::addSymbol(string name, string type, int filenr,int linenr, int offset) {
+    this->mapping[name] = type;
+    this->mapfile[name] = filenr;
+    this->mapline[name] = linenr;
+    this->mapoffset[name] = offset;
+}
+
+void SymbolTable::addSymbol1(string name, string type) {
+    this->mapping[name] = type;
+}
+
+void SymbolTable::dump(FILE* symfile, int depth) {
+    std::map<string,string>::iterator it;
+    for (it = this->mapping.begin(); it != this->mapping.end(); ++it) {
+        const char* name = it->first.c_str();
+        const char* type = it->second.c_str();
+        fprintf(symfile, "%*s%s (%d, %d, %d){%d} %s\n", 3*depth, "", name, this->mapfile[name]-3, this->mapline[name], this->mapoffset[name], this->number, type);
+        
+        if (this->subscopes.count(name) > 0) {
+            this->subscopes[name]->dump(symfile, depth + 1);
+        }
+    }
+    std::map<string,SymbolTable*>::iterator i;
+    for (i = this->subscopes.begin(); i != this->subscopes.end(); ++i) {
+        if (this->mapping.count(i->first) < 1) {
+            i->second->dump(symfile, depth + 1);
+        }
+    }
+}
+
+string SymbolTable::lookup(string name) {
+    if (this->mapping.count(name) > 0) {
+        return this->mapping[name];
+    }
+    if (this->parent != NULL) {
+        return this->parent->lookup(name);
+    } else {
+        errprintf("Unknown identifier: %s\n", name.c_str());
+        return "";
+    }
+}
+
+string SymbolTable::parentFunction(SymbolTable* innerScope) {
+    std::map<string,SymbolTable*>::iterator it;
+    for (it = this->subscopes.begin(); it != this->subscopes.end(); ++it) {
+        if (it->second == innerScope && this->mapping.count(it->first) > 0) {
+            return this->mapping[it->first];
+        }
+    }
+    if (this->parent != NULL) {
+        return this->parent->parentFunction(this);
+    }
+    errprintf("Could not find surrounding function\n");
+    return "";
+}
+
+
+SymbolTable* SymbolTable::leave(SymbolTable* innerScope){
+    if(innerScope->parent != NULL){
+    innerScope= innerScope->parent;
+    return innerScope;
+    }
+    else{
+        return innerScope;
+    }
+    
+}
+
+int SymbolTable::N(0);
+
+vector<string> SymbolTable::parseSignature(string sig) {
+    vector<string> results;
+    size_t left = sig.find_first_of('(');
+    if (left == string::npos) {
+        errprintf("%s is not a function\n", sig.c_str());
+        return results;
+    }
+    results.push_back(sig.substr(0, left));
+    for (size_t i = left + 1; i < sig.length()-1; i = sig.find_first_of(",)", i) + 1) {
+        results.push_back(sig.substr(i, sig.find_first_of(",)", i) - i));
+    }
+    return results;
+}
